@@ -1,4 +1,3 @@
-from sklearn import datasets
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
@@ -45,13 +44,10 @@ patientsData = StandardScaler().fit_transform(patientsData)
 patients_train_data, patients_test_data, patients_train_target, patients_test_target = train_test_split(patientsData, patientsTarget, test_size=0.1)
 
 #utworzenie modelu sieci neuronowej. podanie ilosci warstw, liczby neuronow w kazdej warstwie i ich funkcji aktywacji
-#TODO: pierwsza i ostatnia warstwa maja pozostac tak jak sa. sprawdzic wyniki dla roznej kombinacji warstw pomiedzy, roznej ilosci neuronow i roznych funkcji aktywacji, roznych dropoutow.
-#TODO: porobic screeny wykresow dla roznych funkcji aktywacji i napisac do nich jakiej kombinacji neuronow uzyles. mozesz to wkleic gdzies na dysk google potem i ja to przejrze
 neural_model = Sequential([
-    Dense(2, input_shape=(4,), activation="relu"),
+    Dense(4, input_shape=(4,), activation="selu"),
     Dropout(0.1),
-    Dense(2, activation="selu"),
-    Dropout(0.1),
+    Dense(2, activation="relu"),
     Dense(1, activation="sigmoid")
 ])
 
@@ -63,16 +59,20 @@ neural_model.compile(SGD(lr = .003), "binary_crossentropy", metrics=["accuracy"]
 
 #proces uczenia sie sieci neuronowej
 np.random.seed(0)
-run_hist_1 = neural_model.fit(patients_train_data, patients_train_target, epochs=4000, validation_data=(patients_test_data, patients_test_target), verbose=True, shuffle=False)
+run_history = neural_model.fit(patients_train_data, patients_train_target, epochs=4000, validation_data=(patients_test_data, patients_test_target), verbose=True, shuffle=False)
 
 #wyniki poprawnosci predykcji modelu
 print('Accuracy over training data is ', accuracy_score(patients_train_target, neural_model.predict_classes(patients_train_data)))
 
 print('Accuracy over testing data is ', accuracy_score(patients_test_target, neural_model.predict_classes(patients_test_data)))
 
+conf_matrix = confusion_matrix(patients_test_target, neural_model.predict_classes(patients_test_data))
+print(conf_matrix)
+
+
 #wykres przedstawiajacy proces uczenia
-plt.plot(run_hist_1.history["loss"], 'r', marker='.', label="Train Loss")
-plt.plot(run_hist_1.history["val_loss"], 'b', marker='.', label="Validation Loss")
+plt.plot(run_history.history["loss"], 'r', marker='.', label="Train Loss")
+plt.plot(run_history.history["val_loss"], 'b', marker='.', label="Validation Loss")
 plt.title("Neural network learning with SGD")
 plt.legend()
 plt.grid()
